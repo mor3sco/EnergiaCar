@@ -2,56 +2,140 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>EnergiaCar - Checklist Diário</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Manifest para PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2c3e50">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório Semanal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f7fa;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    #relatorio {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .top-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
-<body class="bg-light">
+<body>
+  <h1>Relatório Semanal</h1>
 
-<div class="container py-5">
-  <h1 class="text-center mb-4">⚡ EnergiaCar - Checklist Diário</h1>
-  <h5 class="text-center text-muted" id="diaSemana"></h5>
-
-  <!-- Form para adicionar novo item -->
-  <div class="card p-3 mb-4 shadow-sm">
-    <div class="row g-2">
-      <div class="col-md-8">
-        <input type="text" id="novoItem" class="form-control" placeholder="Digite o nome do item">
-      </div>
-      <div class="col-md-4 text-end">
-        <button class="btn btn-success w-100" onclick="adicionarItem()">➕ Adicionar</button>
-      </div>
+  <!-- Campos principais -->
+  <div class="top-fields">
+    <div class="form-group">
+      <label for="placa">Placa do Veículo</label>
+      <input type="text" id="placa" placeholder="Ex: ABC-1234">
+    </div>
+    <div class="form-group">
+      <label for="motorista">Motorista</label>
+      <input type="text" id="motorista" placeholder="Nome do motorista">
+    </div>
+    <div class="form-group">
+      <label for="auxiliar">Auxiliar</label>
+      <input type="text" id="auxiliar" placeholder="Nome do auxiliar">
     </div>
   </div>
 
-  <!-- Checklist renderizado -->
-  <div id="checklistContainer"></div>
-
-  <div class="mt-4 text-center">
-    <button class="btn btn-primary me-2" onclick="salvarChecklist()">💾 Salvar</button>
-    <button class="btn btn-danger" onclick="limparRelatorio()">🧹 Limpar Relatórios</button>
+  <!-- Relatório -->
+  <div class="form-group">
+    <label for="texto">Escreva o relatório:</label>
+    <textarea id="texto" placeholder="Digite aqui o relatório..."></textarea>
   </div>
 
-  <hr class="my-5">
+  <button onclick="salvarRelatorio()">Salvar Relatório</button>
 
-  <h3 class="text-center">📊 Relatório Semanal</h3>
-  <div id="relatorio" class="table-responsive"></div>
-</div>
+  <div id="relatorio"></div>
 
-<script src="script.js"></script>
+  <script>
+    // Carregar relatório salvo ao abrir
+    window.onload = function () {
+      const placa = localStorage.getItem("placa") || "";
+      const motorista = localStorage.getItem("motorista") || "";
+      const auxiliar = localStorage.getItem("auxiliar") || "";
+      const texto = localStorage.getItem("texto") || "";
 
-<!-- Registrar o service worker -->
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(() => console.log("✅ Service Worker registrado"))
-    .catch(err => console.error("Erro no Service Worker:", err));
-}
-</script>
+      document.getElementById("placa").value = placa;
+      document.getElementById("motorista").value = motorista;
+      document.getElementById("auxiliar").value = auxiliar;
+      document.getElementById("texto").value = texto;
 
+      mostrarRelatorio();
+    };
+
+    function salvarRelatorio() {
+      const placa = document.getElementById("placa").value;
+      const motorista = document.getElementById("motorista").value;
+      const auxiliar = document.getElementById("auxiliar").value;
+      const texto = document.getElementById("texto").value;
+
+      localStorage.setItem("placa", placa);
+      localStorage.setItem("motorista", motorista);
+      localStorage.setItem("auxiliar", auxiliar);
+      localStorage.setItem("texto", texto);
+
+      mostrarRelatorio();
+    }
+
+    function mostrarRelatorio() {
+      const placa = localStorage.getItem("placa") || "";
+      const motorista = localStorage.getItem("motorista") || "";
+      const auxiliar = localStorage.getItem("auxiliar") || "";
+      const texto = localStorage.getItem("texto") || "";
+
+      const relatorioDiv = document.getElementById("relatorio");
+      relatorioDiv.innerHTML = `
+        <h3>📋 Relatório Salvo</h3>
+        <p><strong>Placa:</strong> ${placa}</p>
+        <p><strong>Motorista:</strong> ${motorista}</p>
+        <p><strong>Auxiliar:</strong> ${auxiliar}</p>
+        <p><strong>Relatório:</strong><br>${texto.replace(/\n/g, "<br>")}</p>
+      `;
+    }
+  </script>
 </body>
 </html>
