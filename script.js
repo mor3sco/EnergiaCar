@@ -9,7 +9,6 @@ document.getElementById("diaSemana").innerText = "Hoje é " + diaSemana;
 function carregarChecklist() {
   let checklist = JSON.parse(localStorage.getItem("checklist_" + diaSemana)) || [];
 
-  // Se ainda não tiver nada, cria os itens fixos
   if (checklist.length === 0) {
     checklist = itensFixos.map(item => ({item, conferido: false, bom_estado: true}));
   }
@@ -55,14 +54,14 @@ function renderizarChecklist(checklist) {
   localStorage.setItem("checklist_" + diaSemana, JSON.stringify(checklist));
 }
 
-// Atualizar status de um item
+// Atualizar status
 function atualizar(index, campo, valor) {
   let checklist = JSON.parse(localStorage.getItem("checklist_" + diaSemana)) || [];
   checklist[index][campo] = valor;
   localStorage.setItem("checklist_" + diaSemana, JSON.stringify(checklist));
 }
 
-// Adicionar novo item
+// Adicionar item
 function adicionarItem() {
   let novoItem = document.getElementById("novoItem").value.trim();
   if (novoItem === "") {
@@ -88,10 +87,22 @@ function removerItem(index) {
   }
 }
 
-// Salvar checklist do dia
+// Salvar checklist
 function salvarChecklist() {
   alert("Checklist de " + diaSemana + " salvo com sucesso ✅");
   gerarRelatorio();
+}
+
+// Limpar relatórios semanais
+function limparRelatorio() {
+  if (confirm("Tem certeza que deseja limpar TODOS os relatórios?")) {
+    dias.forEach(dia => {
+      localStorage.removeItem("checklist_" + dia);
+    });
+    carregarChecklist();
+    gerarRelatorio();
+    alert("Relatórios apagados com sucesso 🧹");
+  }
 }
 
 // Relatório semanal
