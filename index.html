@@ -3,139 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relatório Semanal</title>
+  <title>Checklist de Veículo</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f7fa;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-    button {
-      background: #3498db;
-      color: white;
-      padding: 12px 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #2980b9;
-    }
-    #relatorio {
-      margin-top: 20px;
-      padding: 15px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
-    .top-fields {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .input-group { margin-bottom: 10px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
+    button { padding: 8px 15px; margin: 5px; cursor: pointer; }
+    #relatorio { margin-top: 20px; padding: 10px; border: 1px solid #ddd; }
   </style>
 </head>
 <body>
-  <h1>Relatório Semanal</h1>
+  <h2>Checklist de Veículo</h2>
 
-  <!-- Campos principais -->
-  <div class="top-fields">
-    <div class="form-group">
-      <label for="placa">Placa do Veículo</label>
-      <input type="text" id="placa" placeholder="Ex: ABC-1234">
-    </div>
-    <div class="form-group">
-      <label for="motorista">Motorista</label>
-      <input type="text" id="motorista" placeholder="Nome do motorista">
-    </div>
-    <div class="form-group">
-      <label for="auxiliar">Auxiliar</label>
-      <input type="text" id="auxiliar" placeholder="Nome do auxiliar">
-    </div>
+  <!-- Campos extras -->
+  <div class="input-group">
+    <label for="placa">Placa do Veículo:</label>
+    <input type="text" id="placa">
+  </div>
+  <div class="input-group">
+    <label for="motorista">Motorista:</label>
+    <input type="text" id="motorista">
+  </div>
+  <div class="input-group">
+    <label for="auxiliar">Auxiliar:</label>
+    <input type="text" id="auxiliar">
   </div>
 
-  <!-- Relatório -->
-  <div class="form-group">
-    <label for="texto">Escreva o relatório:</label>
-    <textarea id="texto" placeholder="Digite aqui o relatório..."></textarea>
-  </div>
-
+  <div id="checklist"></div>
+  <button onclick="adicionarItem()">Adicionar Item</button>
+  
+  <h3>Relatório Semanal</h3>
+  <textarea id="relatorioSemanal"></textarea><br>
   <button onclick="salvarRelatorio()">Salvar Relatório</button>
 
-  <div id="relatorio"></div>
+  <div id="relatorio">
+    <h3>Dados Salvos</h3>
+    <pre id="dadosSalvos"></pre>
+  </div>
 
   <script>
-    // Carregar relatório salvo ao abrir
-    window.onload = function () {
-      const placa = localStorage.getItem("placa") || "";
-      const motorista = localStorage.getItem("motorista") || "";
-      const auxiliar = localStorage.getItem("auxiliar") || "";
-      const texto = localStorage.getItem("texto") || "";
+    let checklist = JSON.parse(localStorage.getItem("checklist")) || [];
+    let relatorioSemanal = localStorage.getItem("relatorioSemanal") || "";
+    let infoExtras = JSON.parse(localStorage.getItem("infoExtras")) || {placa: "", motorista: "", auxiliar: ""};
 
-      document.getElementById("placa").value = placa;
-      document.getElementById("motorista").value = motorista;
-      document.getElementById("auxiliar").value = auxiliar;
-      document.getElementById("texto").value = texto;
+    document.getElementById("relatorioSemanal").value = relatorioSemanal;
+    document.getElementById("placa").value = infoExtras.placa;
+    document.getElementById("motorista").value = infoExtras.motorista;
+    document.getElementById("auxiliar").value = infoExtras.auxiliar;
 
-      mostrarRelatorio();
-    };
+    function renderChecklist() {
+      let container = document.getElementById("checklist");
+      container.innerHTML = "";
+      checklist.forEach((item, index) => {
+        container.innerHTML += `
+          <div>
+            <input type="text" value="${item}" onchange="editarItem(${index}, this.value)">
+            <button onclick="removerItem(${index})">Remover</button>
+          </div>`;
+      });
+      salvarLocal();
+    }
+
+    function adicionarItem() {
+      checklist.push("Novo item");
+      renderChecklist();
+    }
+
+    function editarItem(index, valor) {
+      checklist[index] = valor;
+      salvarLocal();
+    }
+
+    function removerItem(index) {
+      checklist.splice(index, 1);
+      renderChecklist();
+    }
 
     function salvarRelatorio() {
-      const placa = document.getElementById("placa").value;
-      const motorista = document.getElementById("motorista").value;
-      const auxiliar = document.getElementById("auxiliar").value;
-      const texto = document.getElementById("texto").value;
-
-      localStorage.setItem("placa", placa);
-      localStorage.setItem("motorista", motorista);
-      localStorage.setItem("auxiliar", auxiliar);
-      localStorage.setItem("texto", texto);
-
-      mostrarRelatorio();
+      relatorioSemanal = document.getElementById("relatorioSemanal").value;
+      localStorage.setItem("relatorioSemanal", relatorioSemanal);
+      salvarLocal();
+      atualizarDadosSalvos();
+      alert("Relatório salvo com sucesso!");
     }
 
-    function mostrarRelatorio() {
-      const placa = localStorage.getItem("placa") || "";
-      const motorista = localStorage.getItem("motorista") || "";
-      const auxiliar = localStorage.getItem("auxiliar") || "";
-      const texto = localStorage.getItem("texto") || "";
-
-      const relatorioDiv = document.getElementById("relatorio");
-      relatorioDiv.innerHTML = `
-        <h3>📋 Relatório Salvo</h3>
-        <p><strong>Placa:</strong> ${placa}</p>
-        <p><strong>Motorista:</strong> ${motorista}</p>
-        <p><strong>Auxiliar:</strong> ${auxiliar}</p>
-        <p><strong>Relatório:</strong><br>${texto.replace(/\n/g, "<br>")}</p>
-      `;
+    function salvarLocal() {
+      localStorage.setItem("checklist", JSON.stringify(checklist));
+      infoExtras = {
+        placa: document.getElementById("placa").value,
+        motorista: document.getElementById("motorista").value,
+        auxiliar: document.getElementById("auxiliar").value
+      };
+      localStorage.setItem("infoExtras", JSON.stringify(infoExtras));
+      atualizarDadosSalvos();
     }
+
+    function atualizarDadosSalvos() {
+      document.getElementById("dadosSalvos").textContent = 
+        "Placa: " + (infoExtras.placa || "") + "\n" +
+        "Motorista: " + (infoExtras.motorista || "") + "\n" +
+        "Auxiliar: " + (infoExtras.auxiliar || "") + "\n\n" +
+        "Checklist:\n" + checklist.join("\n") + "\n\n" +
+        "Relatório:\n" + relatorioSemanal;
+    }
+
+    // Salva sempre que mudar os campos extras
+    document.getElementById("placa").addEventListener("input", salvarLocal);
+    document.getElementById("motorista").addEventListener("input", salvarLocal);
+    document.getElementById("auxiliar").addEventListener("input", salvarLocal);
+
+    renderChecklist();
+    atualizarDadosSalvos();
   </script>
 </body>
 </html>
