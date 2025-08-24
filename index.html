@@ -2,119 +2,55 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checklist de Veículo</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .input-group { margin-bottom: 10px; }
-    label { font-weight: bold; display: block; margin-bottom: 5px; }
-    input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
-    button { padding: 8px 15px; margin: 5px; cursor: pointer; }
-    #relatorio { margin-top: 20px; padding: 10px; border: 1px solid #ddd; }
-  </style>
+  <title>EnergiaCar - Checklist Diário</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Manifest para PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2c3e50">
 </head>
-<body>
-  <h2>Checklist de Veículo</h2>
+<body class="bg-light">
 
-  <!-- Campos extras -->
-  <div class="input-group">
-    <label for="placa">Placa do Veículo:</label>
-    <input type="text" id="placa">
-  </div>
-  <div class="input-group">
-    <label for="motorista">Motorista:</label>
-    <input type="text" id="motorista">
-  </div>
-  <div class="input-group">
-    <label for="auxiliar">Auxiliar:</label>
-    <input type="text" id="auxiliar">
-  </div>
+<div class="container py-5">
+  <h1 class="text-center mb-4">⚡ EnergiaCar - Checklist Diário</h1>
+  <h5 class="text-center text-muted" id="diaSemana"></h5>
 
-  <div id="checklist"></div>
-  <button onclick="adicionarItem()">Adicionar Item</button>
-  
-  <h3>Relatório Semanal</h3>
-  <textarea id="relatorioSemanal"></textarea><br>
-  <button onclick="salvarRelatorio()">Salvar Relatório</button>
-
-  <div id="relatorio">
-    <h3>Dados Salvos</h3>
-    <pre id="dadosSalvos"></pre>
+  <!-- Form para adicionar novo item -->
+  <div class="card p-3 mb-4 shadow-sm">
+    <div class="row g-2">
+      <div class="col-md-8">
+        <input type="text" id="novoItem" class="form-control" placeholder="Digite o nome do item">
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-success w-100" onclick="adicionarItem()">➕ Adicionar</button>
+      </div>
+    </div>
   </div>
 
-  <script>
-    let checklist = JSON.parse(localStorage.getItem("checklist")) || [];
-    let relatorioSemanal = localStorage.getItem("relatorioSemanal") || "";
-    let infoExtras = JSON.parse(localStorage.getItem("infoExtras")) || {placa: "", motorista: "", auxiliar: ""};
+  <!-- Checklist renderizado -->
+  <div id="checklistContainer"></div>
 
-    document.getElementById("relatorioSemanal").value = relatorioSemanal;
-    document.getElementById("placa").value = infoExtras.placa;
-    document.getElementById("motorista").value = infoExtras.motorista;
-    document.getElementById("auxiliar").value = infoExtras.auxiliar;
+  <div class="mt-4 text-center">
+    <button class="btn btn-primary me-2" onclick="salvarChecklist()">💾 Salvar</button>
+  </div>
 
-    function renderChecklist() {
-      let container = document.getElementById("checklist");
-      container.innerHTML = "";
-      checklist.forEach((item, index) => {
-        container.innerHTML += `
-          <div>
-            <input type="text" value="${item}" onchange="editarItem(${index}, this.value)">
-            <button onclick="removerItem(${index})">Remover</button>
-          </div>`;
-      });
-      salvarLocal();
-    }
+  <hr class="my-5">
 
-    function adicionarItem() {
-      checklist.push("Novo item");
-      renderChecklist();
-    }
+  <h3 class="text-center">📊 Relatório Semanal</h3>
+  <div id="relatorio" class="table-responsive"></div>
+</div>
 
-    function editarItem(index, valor) {
-      checklist[index] = valor;
-      salvarLocal();
-    }
+<script src="script.js"></script>
 
-    function removerItem(index) {
-      checklist.splice(index, 1);
-      renderChecklist();
-    }
+<!-- Registrar o service worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log("✅ Service Worker registrado"))
+    .catch(err => console.error("Erro no Service Worker:", err));
+}
+</script>
 
-    function salvarRelatorio() {
-      relatorioSemanal = document.getElementById("relatorioSemanal").value;
-      localStorage.setItem("relatorioSemanal", relatorioSemanal);
-      salvarLocal();
-      atualizarDadosSalvos();
-      alert("Relatório salvo com sucesso!");
-    }
-
-    function salvarLocal() {
-      localStorage.setItem("checklist", JSON.stringify(checklist));
-      infoExtras = {
-        placa: document.getElementById("placa").value,
-        motorista: document.getElementById("motorista").value,
-        auxiliar: document.getElementById("auxiliar").value
-      };
-      localStorage.setItem("infoExtras", JSON.stringify(infoExtras));
-      atualizarDadosSalvos();
-    }
-
-    function atualizarDadosSalvos() {
-      document.getElementById("dadosSalvos").textContent = 
-        "Placa: " + (infoExtras.placa || "") + "\n" +
-        "Motorista: " + (infoExtras.motorista || "") + "\n" +
-        "Auxiliar: " + (infoExtras.auxiliar || "") + "\n\n" +
-        "Checklist:\n" + checklist.join("\n") + "\n\n" +
-        "Relatório:\n" + relatorioSemanal;
-    }
-
-    // Salva sempre que mudar os campos extras
-    document.getElementById("placa").addEventListener("input", salvarLocal);
-    document.getElementById("motorista").addEventListener("input", salvarLocal);
-    document.getElementById("auxiliar").addEventListener("input", salvarLocal);
-
-    renderChecklist();
-    atualizarDadosSalvos();
-  </script>
 </body>
 </html>
